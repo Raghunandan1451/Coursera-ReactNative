@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import { Text, View } from 'react-native';
 import { Card } from 'react-native-elements';
 import { DISHES } from '../shared/dishes';
@@ -23,7 +23,7 @@ function RenderDish(props) {
         }
 }
 
-class DishDetail extends Component {
+class Dishdetail extends Component {
 
     constructor(props) {
         super(props);
