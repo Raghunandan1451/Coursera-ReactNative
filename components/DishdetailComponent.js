@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Text, View, ScrollView, FlatList, Modal, StyleSheet, Button, Alert, PanResponder } from 'react-native';
+import { Text, View, ScrollView, FlatList, Modal, StyleSheet, Button, Alert, PanResponder, Share } from 'react-native';
 import { Card, Icon, Rating, Input, Button } from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import { connect } from 'react-redux';
@@ -16,6 +16,7 @@ const mapDispatchToProps = dispatch => ({
   // eslint-disable-next-line max-len
   postComment: (dishId, rating, author, comment) => dispatch(postComment(dishId, rating, author, comment)),
 });
+
 function RenderDish({
   dish,
   favorite,
@@ -61,6 +62,17 @@ function RenderDish({
       return true;
     },
   });
+
+  const shareDish = (title, message, url) => {
+    Share.share({
+        title: title,
+        message: title + ': ' + message + ' ' + url,
+        url: url
+    },{
+        dialogTitle: 'Share ' + title
+    })
+  }
+  
   if (dish != null) {
     return (
       <Animatable.View
@@ -95,6 +107,14 @@ function RenderDish({
               color="#512DA8"
               onPress={() => openCommentForm()}
             />
+            <Icon
+              raised
+              reverse
+              name='share'
+              type='font-awesome'
+              color='#51D2A8'
+              style={styles.cardItem}
+              onPress={() => shareDish(dish.name, dish.description, baseUrl + dish.image)} />
           </View>
         </Card>
       </Animatable.View>

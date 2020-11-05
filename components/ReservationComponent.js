@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { Alert, Text, View, StyleSheet, Switch, Button, Modal } from 'react-native';
+import { Alert, Text, View, StyleSheet, Switch, Button } from 'react-native';
 import { Picker } from '@react-native-community/picker';
 import DatePicker from 'react-native-datepicker';
 import * as Animatable from 'react-native-animatable';
+import { Permissions, Notifications, Calendar } from 'expo';
 
 class Reservation extends Component {
 
@@ -20,11 +21,6 @@ class Reservation extends Component {
         title: 'Reserve Table',
     };
 
-    confirmReservation() {
-        // Stub for future code
-        this.resetForm();
-    }
-
     resetForm() {
         this.setState(Reservation.defaultState());
     }
@@ -39,18 +35,75 @@ class Reservation extends Component {
             {
               text: 'Cancel',
               style: 'cancel',
-              onPress: () => this.resetForm(),
+              onPress: () => {this.resetForm();}
             },
             {
               text: 'OK',
-              // eslint-disable-next-line no-confusing-arrow, no-console
-              onPress: () => this.confirmReservation(),
+              onPress: () => {
+                  this.presentLocalNotification(this.state.date);
+                  this.addReservationToCalendar(this.state.date);
+                  this.resetForm();
+                }
             },
           ],
           { cancelable: false },
         );
     }
     
+    async obtainNotificationPermission() {
+        let permission = await Permissions.getAsync(Permissions.USER_FACING_NOTIFICATIONS);
+        if (permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.USER_FACING_NOTIFICATIONS);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to show notifications');
+            }
+        }
+        return permission;
+    }
+
+    async presentLocalNotification(date) {
+        await this.obtainNotificationPermission();
+        Notifications.presentLocalNotificationAsync({
+            title: 'Your Reservation',
+            body: 'Reservation for '+ date + ' requested',
+            ios: {
+                sound: true
+            },
+            android: {
+                sound: true,
+                vibrate: true,
+                color: '#512DA8'
+            }
+        });
+    }
+
+    async obtainCalendarPermission() {
+        let permission = await Permissions.getAsync(Permissions.CALENDAR);
+        if (permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.CALENDAR);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to calendar');
+            }
+        }
+        return permission;
+    }
+
+    async addReservationToCalendar(date) {
+        await this.obtainCalendarPermission();
+
+        let dateMs = Date.parse(date);
+        let startDate = new Date(dateMs);
+        let endDate = new Date(dateMs + 2 * 60 * 60 * 1000);
+
+        await Calendar.createEventAsync(Calendar.DEFAULT, {
+            title: 'Con Fusion Table Reservation',
+            startDate: startDate,
+            endDate: endDate,
+            timeZone: 'Asia/Hong_Kong',
+            location: '121, Clear Water Bay Road, Clear Water Bay, Kowloon, Hong Kong'
+        });
+    }
+
     render() {
         return(
             <Animatable.View animation="zoomIn" duration={2000}>
